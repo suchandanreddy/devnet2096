@@ -72,17 +72,11 @@ Successfully associated Tag VPC-Eng01 to Host VPC my-vpc-01
 ## Create Cloud Gateway
 
 ```
-(venv) msuchand@MSUCHAND-M-F109 devnet2096 % python3 cor-multicloud.py add-cloudgateway --input_yaml sandbox-config.yaml
+(venv) python3 cor-multicloud.py add-cloudgateway --input_yaml sandbox-config.yaml
 
 Adding Cloud Gateway
 
 Successfully created cloud gateway
-```
-
-## Enable Cloud Connectivity
-
-```
-
 ```
 
 ## Cloud Gateway list
