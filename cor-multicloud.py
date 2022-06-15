@@ -75,7 +75,7 @@ base_url = "https://%s:%s/dataservice"%(vmanage_host, vmanage_port)
 
 @click.group()
 def cli():
-    """Command line tool for vManage Templates and Policy Configuration APIs.
+    """Command line tool for vManage Cloud OnRamp for Multi-Cloud APIs.
     """
     pass
 
@@ -146,7 +146,7 @@ def multicloud_globalsettings():
             }
 
     response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
-    
+
     if response.status_code == 200:
         print("Configured/updated Multi Cloud Global Settings")
 
