@@ -1,5 +1,6 @@
 ## Associate Cloud Service Provider Account
 
+```
 (venv) python3 cor-multicloud.py associate-account --input_yaml aws-config.yaml
 
 Associating the cloud service provider account
@@ -8,18 +9,20 @@ Associating the cloud service provider account
 ╞══════════════╪════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
 │ 010098612700 │ ['eu-north-1', 'ap-south-1', 'eu-west-3', 'eu-west-2', 'eu-west-1', 'ap-northeast-3', 'ap-northeast-2', 'ap-northeast-1', 'sa-east-1', 'ca-central-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-central-1', 'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2'] │
 ╘══════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
-(venv) msuchand@MSUCHAND-M-F109 devnet2096 %
+```
 
 ## Configure Global Settings
 
+```
 (venv) python3 cor-multicloud.py multicloud-globalsettings
 
 Configuring Multi Cloud Global Settings
 Configured/updated Multi Cloud Global Settings
-
+```
 
 ## Discover Host VPCs
 
+```
 (venv) python3 cor-multicloud.py discover-hostvpc
 
 Discovering Host VPCs in associated Cloud Service Provider account
@@ -54,18 +57,21 @@ Discovering Host VPCs in associated Cloud Service Provider account
 ├────────────────┼────────────────┼───────────────────────┼─────────────────┤
 │ Cloud-TME      │ ap-southeast-2 │ vpc-54aaf433          │                 │
 ╘════════════════╧════════════════╧═══════════════════════╧═════════════════╛
-
+```
 
 ## Associate Tag
 
+```
 (venv) python3 cor-multicloud.py tag-hostvpc --input_yaml aws-config.yaml
 
 Adding Tag to Host VPC
 
 Successfully associated Tag VPC-Eng01 to Host VPC my-vpc-01
+```
 
 ## Cloud Gateway list
 
+```
 (venv) python3 cor-multicloud.py cloud-gateway-list
 
 Retrieving the MutliCloud Gateways
@@ -76,9 +82,11 @@ Retrieving the MutliCloud Gateways
 ├──────────────────────┼───────────┼─────────────┼────────────────┼────────────────────┼──────────┤
 │ gcp-uswest-cgw1      │        56 │ 56.56.56.2  │ reachable      │ 17.07.01a.0.1883   │ normal   │
 ╘══════════════════════╧═══════════╧═════════════╧════════════════╧════════════════════╧══════════╛
+```
 
 ## Connected Sites
 
+```
 (venv) python3 cor-multicloud.py connected-sites
 
 Retrieving the Connected Sites
@@ -99,3 +107,4 @@ Retrieving the Connected Sites
 ├───────────────────┼───────────┼────────────────┼─────────────────────┼────────────────┼───────────────────┼──────────┤
 │ azu-uswest-cgw1   │    152240 │ reachable      │ 17.07.01a.0.1883    │              4 │                 2 │ normal   │
 ╘═══════════════════╧═══════════╧════════════════╧═════════════════════╧════════════════╧═══════════════════╧══════════╛
+```
