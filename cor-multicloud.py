@@ -106,7 +106,8 @@ def associate_account(input_yaml):
     response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
 
     if response.status_code == 200:
-        accountId = response.json()['accountId']
+        #accountId = response.json()['accountId']
+        accountId = "<Account ID>"
         regionList = response.json()['regionList']
     else:
         print("Failed to associate cloud provider account")
@@ -144,13 +145,13 @@ def multicloud_globalsettings():
                     "tunnelType": "ipsec"
             }
 
-    response = requests.put(url=url, headers=header, data=json.dumps(payload),verify=False)
-
+    response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
+    
     if response.status_code == 200:
         print("Configured/updated Multi Cloud Global Settings")
 
     else:
-        print("Failed to associate cloud provider account")
+        print("Failed to configure Multi Cloud Global Settings")
         exit()
 
 
@@ -203,7 +204,7 @@ def tag_hostvpc(input_yaml):
 
     payload = {
                     "tagName": tag_name,
-                    "interconnectTag": True,
+                    "interconnectTag": False,
                     "hostVpcs": [
                                     {
                                         "accountId": config["aws_accountid"],
@@ -248,20 +249,19 @@ def tag_hostvpc(input_yaml):
 @click.option("--input_yaml", help="C8kv uuids")
 def add_cloudgateway(input_yaml):
     """ Add Cloud Gateway.                              
-        \nExample command: ./cor-multicloud.py add-cloudgateway --input_yaml aws-config.yaml
+        \nExample command: ./cor-multicloud.py add-cloudgateway --input_yaml sandbox-config.yaml
     """
     click.secho("Adding Cloud Gateway")
 
     url = base_url + "/multicloud/cloudgateway"
 
-    print("Loading Network Configuration Details from YAML File")
     with open(input_yaml) as f:
         config = yaml.safe_load(f.read())
 
     payload = {
                     "cloudType": "AWS",
                     "accountId": config["aws_accountid"],
-                    "region": "us-east-1",
+                    "region": "us-west-2",
                     "cloudGatewayName": "Cloud-TME-CGW",
                     "devices": [
                                     config["c8kv1-uuid"],
@@ -310,12 +310,12 @@ def add_cloudconnectivity():
                         "srcType": "vpn",
                         "srcId": "10",
                         "destType": "tag",
-                        "destId": "VPC1-Eng",
+                        "destId": "VPC1-Eng1",
                         "conn": "enabled"
                     },
                     {
                         "srcType": "tag",
-                        "srcId": "VPC1-Eng",
+                        "srcId": "VPC1-Eng1",
                         "destType": "vpn",
                         "destId": "10",
                         "conn": "enabled"
@@ -412,6 +412,7 @@ cli.add_command(multicloud_globalsettings)
 cli.add_command(discover_hostvpc)
 cli.add_command(tag_hostvpc)
 cli.add_command(add_cloudgateway)
+cli.add_command(add_cloudconnectivity)
 cli.add_command(cloud_gateway_list)
 cli.add_command(connected_sites)
 
