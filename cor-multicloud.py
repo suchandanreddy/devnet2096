@@ -124,36 +124,77 @@ def associate_account(input_yaml):
         click.echo(tabulate.tabulate(table, headers, tablefmt="grid"))
 
 @click.command()
-def multicloud_globalsettings():
+@click.option("--input_yaml", help="AWS Account API Keys")
+def multicloud_globalsettings(input_yaml):
     """ Configure Multi Cloud Global Settings.                              
-        \nExample command: ./cor-multicloud.py multicloud-globalsettings
+        \nExample command: ./cor-multicloud.py multicloud-globalsettings --input_yaml aws-config.yaml
     """
     click.secho("Configuring Multi Cloud Global Settings")
+    
+    
+    with open(input_yaml) as f:
+        config = yaml.safe_load(f.read())
+    
+    cloudtype = config["cloudtype"]
 
     url = base_url + "/multicloud/settings/global"
 
-    payload =  {
-                    "cloudType": "AWS",
-                    "cloudGatewaySolution": "tgw_tvpc",
-                    "softwareImageId": "Cisco-C8K-17.06.02-89aa2e04-79cb-44c1-981d-160b56247c98",
-                    "instanceSize": "c5n.large",
-                    "ipSubnetPool": "192.168.0.0/24",
-                    "cgwBgpAsnOffset": 64520,
-                    "intraTagComm": True,
-                    "programDefaultRoute": True,
-                    "mapTvpc": True,
-                    "tunnelType": "ipsec"
-            }
+    if cloudtype == "AWS":
 
-    response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
+        payload =  {
+                        "cloudType": "AWS",
+                        "enablePeriodicAudit": True,
+                        "enableAutoCorrect": True,
+                        "region": "us-west-2",
+                        "accountId": config["aws_accountid"],
+                        "cloudGatewaySolution": "tgw_tvpc",
+                        "softwareImageId": "Cisco-C8K-17.09.01a-42cb6e93-8d9d-490b-a73c-e3e56077ffd1",
+                        "instanceSize": "c5n.large",
+                        "ipSubnetPool": "192.168.0.0/24",
+                        "cgwBgpAsnOffset": 64520,
+                        "intraTagComm": True,
+                        "programDefaultRoute": True,
+                        "mapTvpc": True,
+                        "tunnelType": "ipsec"
+                }
 
-    if response.status_code == 200:
-        print("Configured/updated Multi Cloud Global Settings")
+        response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
 
-    else:
-        print("Failed to configure Multi Cloud Global Settings")
-        exit()
+        if response.status_code == 200:
+            print("Configured/updated Multi Cloud Global Settings")
 
+        else:
+            print(response.text)
+            print("Failed to configure Multi Cloud Global Settings")
+            exit()
+
+    elif cloudtype == "Azure":
+
+        payload =  {
+                        "cloudType": "AZURE",
+                        "enablePeriodicAudit": "false",
+                        "enableAutoCorrect": "false",
+                        "cloudGatewaySolution": "vhub",
+                        "skuScaleUnit": 2,
+                        "ipSubnetPool": "10.16.255.0/24",
+                        "softwareImageId": "17.9.02",
+                        "orgBgpAsn": 64516,
+                        "enableMonitoring": "false",
+                        "enableDefRouteAdvertize": "false",
+                        "name": "AZURE_GLOBAL_SETTING"
+                }
+
+        print(payload)
+        response = requests.post(url=url, headers=header, data=json.dumps(payload),verify=False)
+        print(response)
+
+        if response.status_code == 200:
+            print("Configured/updated Multi Cloud Global Settings")
+
+        else:
+            print(response.text)
+            print("Failed to configure Multi Cloud Global Settings")
+            exit()
 
 @click.command()
 def discover_hostvpc():
@@ -295,13 +336,19 @@ def add_cloudgateway(input_yaml):
 
 
 @click.command()
-def add_cloudconnectivity():
+@click.option("--input_yaml", help="host vpc tag")
+def add_cloudconnectivity(input_yaml):
     """ Enable Cloud Connectivity                              
-        \nExample command: ./cor-multicloud.py add-cloudconnectivity
+        \nExample command: ./cor-multicloud.py add-cloudconnectivity --input_yaml aws-config.yaml
     """
     click.secho("Adding Intent mapping to enable Cloud Connectivity")
 
     url = base_url + "/multicloud/map?cloudType=AWS"
+
+    with open(input_yaml) as f:
+        config = yaml.safe_load(f.read())
+    
+    tag_name = config["tag_name"]
 
     payload = {
                 "cloudType": "AWS",
@@ -310,12 +357,12 @@ def add_cloudconnectivity():
                         "srcType": "vpn",
                         "srcId": "10",
                         "destType": "tag",
-                        "destId": "VPC1-Eng1",
+                        "destId": tag_name,
                         "conn": "enabled"
                     },
                     {
                         "srcType": "tag",
-                        "srcId": "VPC1-Eng1",
+                        "srcId": tag_name,
                         "destType": "vpn",
                         "destId": "10",
                         "conn": "enabled"
@@ -341,9 +388,9 @@ def add_cloudconnectivity():
             tag_push_status = tag_status_res.json()
             if tag_push_status['summary']['status'] == "done":
                 if 'Success' in tag_push_status['summary']['count']:
-                    click.echo("\nSuccessfully created cloud gateway")
+                    click.echo("\nSuccessfully created cloud connectivity")
                 elif 'Failure' in tag_push_status['summary']['count']:
-                    click.echo("\Failed to create cloud gateway")
+                    click.echo("\nFailed to create cloud connectivity")
                 break
 
 
@@ -353,15 +400,37 @@ def cloud_gateway_list():
     """ Retrieve cloud gateways list.                      
         \nExample command: ./cor-multicloud.py cloud-gateway-list
     """
-    click.secho("Retrieving the MutliCloud Gateways")
+    click.secho("Retrieving the AWS MutliCloud Gateways")
 
-    url = base_url + "/multicloud/devices/GCP"
+    url = base_url + "/multicloud/devices/AWS"
 
     response = requests.get(url=url, headers=header,verify=False)
     if response.status_code == 200:
         items = response.json()['data']
     else:
-        print("Failed to get list of multicloud gateways")
+        print("Failed to get list of AWS multicloud gateways")
+        exit()
+
+    headers = ["Cloud Gateway Name", "Site ID", "System IP", "Reachability", "Software Version", "Status"]
+    table = list()
+
+    for item in items:
+        tr = [item['cloudGatewayName'], item['site-id'], item['system-ip'], item['reachability'], item['version'], item['status']]
+        table.append(tr)
+    try:
+        click.echo(tabulate.tabulate(table, headers, tablefmt="fancy_grid"))
+    except UnicodeEncodeError:
+        click.echo(tabulate.tabulate(table, headers, tablefmt="grid"))
+
+    click.secho("Retrieving the Azure MutliCloud Gateways")
+
+    url = base_url + "/multicloud/devices/AZURE"
+
+    response = requests.get(url=url, headers=header,verify=False)
+    if response.status_code == 200:
+        items = response.json()['data']
+    else:
+        print("Failed to get list of Azure multicloud gateways")
         exit()
 
     headers = ["Cloud Gateway Name", "Site ID", "System IP", "Reachability", "Software Version", "Status"]
@@ -381,15 +450,15 @@ def connected_sites():
     """ Retrieve connected sites.                      
         \nExample command: ./cor-multicloud.py connected-sites
     """
-    click.secho("Retrieving the Connected Sites")
+    click.secho("Retrieving the AWS Connected Sites")
 
-    url = base_url + "/multicloud/connected-sites/GCP"
+    url = base_url + "/multicloud/connected-sites/AWS"
 
     response = requests.get(url=url, headers=header,verify=False)
     if response.status_code == 200:
         items = response.json()['data']
     else:
-        print("Failed to get list of connected sites")
+        print("Failed to get list of AWS connected sites")
         exit()
 
     headers = ["Host name", "Site ID", "Reachability", "Software Version", "BFD Sessions", "BFD Sessions Up", "Status"]
@@ -404,6 +473,27 @@ def connected_sites():
         click.echo(tabulate.tabulate(table, headers, tablefmt="grid"))
 
 
+    click.secho("Retrieving the Azure Connected Sites")
+
+    url = base_url + "/multicloud/connected-sites/AZURE"
+
+    response = requests.get(url=url, headers=header,verify=False)
+    if response.status_code == 200:
+        items = response.json()['data']
+    else:
+        print("Failed to get list of Azure connected sites")
+        exit()
+
+    headers = ["Host name", "Site ID", "Reachability", "Software Version", "BFD Sessions", "BFD Sessions Up", "Status"]
+    table = list()
+
+    for item in items:
+        tr = [item['host-name'], item['site-id'], item['reachability'], item['version'], item['bfdSessions'], item['bfdSessionsUp'], item['status']]
+        table.append(tr)
+    try:
+        click.echo(tabulate.tabulate(table, headers, tablefmt="fancy_grid"))
+    except UnicodeEncodeError:
+        click.echo(tabulate.tabulate(table, headers, tablefmt="grid"))
 
 
 
